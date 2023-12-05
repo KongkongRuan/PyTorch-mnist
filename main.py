@@ -23,6 +23,8 @@ from torchsummary import summary
 
 from Download import LR, EPOCH, train_data, BATCH_SIZE
 
+
+showImg = False
 # DataLoader
 train_loader = Data.DataLoader(
     dataset=train_data,
@@ -80,7 +82,8 @@ class CNN(nn.Module):
 
 
 cnn = CNN()
-summary(cnn,input_size=(1,28,28)) #查看网络结构
+#summary(cnn,input_size=(1,28,28)) #查看网络结构
+#损失函数和梯度更新
 #优化器
 optimizer = torch.optim.Adam(cnn.parameters(),lr=LR)
 #损失函数
@@ -140,8 +143,9 @@ print(real_y)
 for i in range(10):
     print('Predict', predict_y[i])
     print('Real', real_y[i])
-    plt.imshow(test_data.data[i].numpy(), cmap='gray')
-    plt.show()
+    if showImg:
+        plt.imshow(test_data.data[i].numpy(), cmap='gray')
+        plt.show()
 
 cnn.eval()
 torch.save(cnn, 'cnn.pt')

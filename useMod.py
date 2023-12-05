@@ -2,7 +2,7 @@ from torchvision import datasets,transforms
 import torch
 import matplotlib.pyplot as plt
 import torch.nn as nn
-
+from main import showImg
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
@@ -76,5 +76,6 @@ print(real_y)
 for i in range(10):
     print('Predict', predict_y[i])
     print('Real', real_y[i])
-    plt.imshow(test_data.data[i].numpy(), cmap='gray')
-    plt.show()
+    if showImg:
+        plt.imshow(test_data.data[i].numpy(), cmap='gray')
+        plt.show()
