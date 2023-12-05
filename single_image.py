@@ -63,7 +63,7 @@ transform = transforms.Compose([
 
 # 1. 加载单张图片
 # single_image_path = 'D:\\input\\202312041357073333333.png'  # 替换成你的图片路径
-single_image_path = 'D:\\input\\my\\4.png'  # 替换成你的图片路径
+single_image_path = 'D:\\input\\4.png'  # 替换成你的图片路径
 single_image = Image.open(single_image_path).convert('L')  # 转为灰度图
 single_image = transform(single_image)  # 使用之前定义的预处理 transform
 

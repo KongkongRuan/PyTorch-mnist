@@ -21,10 +21,23 @@ from torchvision import datasets,transforms
 import matplotlib.pyplot as plt
 from torchsummary import summary
 
-from Download import LR, EPOCH, train_data, BATCH_SIZE
+# from Download import LR, EPOCH, train_data, BATCH_SIZE
+
+showImg = False
+EPOCH = 20
+BATCH_SIZE = 200
+LR = 0.001
+DOWNLOAD = True
 
 
 showImg = False
+
+train_data = datasets.MNIST(
+    root='./data',
+    train=True,
+    transform=transforms.ToTensor(),
+    download=DOWNLOAD
+)
 # DataLoader
 train_loader = Data.DataLoader(
     dataset=train_data,
@@ -80,7 +93,6 @@ class CNN(nn.Module):
         # (batch, 10)
         return output
 
-
 cnn = CNN()
 #summary(cnn,input_size=(1,28,28)) #查看网络结构
 #损失函数和梯度更新
@@ -88,7 +100,6 @@ cnn = CNN()
 optimizer = torch.optim.Adam(cnn.parameters(),lr=LR)
 #损失函数
 loss_func = nn.CrossEntropyLoss()
-
 # 为了节约时间，只使用测试集的前2000个数据
 # img = Variable(
 #     torch.unsqueeze(test_data.data, dim=1),
@@ -114,7 +125,6 @@ with torch.no_grad():
     img = torch.unsqueeze(test_data.data, dim=1).float()
 test_x = img / 255  # 将将0~255压缩为0~1
 test_y = test_data.test_labels
-
 r=range(EPOCH)
 tl=enumerate(train_loader)
 # 训练神经网络
