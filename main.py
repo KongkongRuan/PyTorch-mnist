@@ -20,11 +20,15 @@ import torch.utils.data as Data
 from torchvision import datasets,transforms
 import matplotlib.pyplot as plt
 from torchsummary import summary
+import time
 
-from Download import LR, EPOCH, train_data, BATCH_SIZE
 
 
-showImg = False
+from constant import *
+
+
+
+
 # DataLoader
 train_loader = Data.DataLoader(
     dataset=train_data,
@@ -81,13 +85,7 @@ class CNN(nn.Module):
         return output
 
 
-cnn = CNN()
-#summary(cnn,input_size=(1,28,28)) #查看网络结构
-#损失函数和梯度更新
-#优化器
-optimizer = torch.optim.Adam(cnn.parameters(),lr=LR)
-#损失函数
-loss_func = nn.CrossEntropyLoss()
+
 
 # 为了节约时间，只使用测试集的前2000个数据
 # img = Variable(
@@ -108,6 +106,15 @@ loss_func = nn.CrossEntropyLoss()
 #     torch.unsqueeze(test_data.test_data, dim=1),
 #     volatile=True
 # ).type(torch.FloatTensor)/255 # 将将0~255压缩为0~1
+cnn = CNN()
+if useGpu:
+    cnn = cnn.cuda() # 若有cuda环境，取消注释
+#summary(cnn,input_size=(1,28,28)) #查看网络结构
+#损失函数和梯度更新
+#优化器
+optimizer = torch.optim.Adam(cnn.parameters(),lr=LR)
+#损失函数
+loss_func = nn.CrossEntropyLoss()
 
 with torch.no_grad():
     # img = torch.autograd.Variable(torch.unsqueeze(test_data.data, dim=1))
@@ -115,11 +122,19 @@ with torch.no_grad():
 test_x = img / 255  # 将将0~255压缩为0~1
 test_y = test_data.test_labels
 
+if useGpu:
+    test_x = test_x.cuda() # 若有cuda环境，取消注释
+    test_y = test_y.cuda() # 若有cuda环境，取消注释
+start=time.time()
 r=range(EPOCH)
 tl=enumerate(train_loader)
+instart = time.time()
 # 训练神经网络
 for epoch in range(EPOCH):
     for step, (batch_x, batch_y) in enumerate(train_loader):
+        if useGpu:
+            batch_x = batch_x.cuda() # 若有cuda环境，取消注释
+            batch_y = batch_y.cuda() # 若有cuda环境，取消注释
         output = cnn(batch_x)
         loss = loss_func(output, batch_y)
         optimizer.zero_grad()
@@ -128,13 +143,29 @@ for epoch in range(EPOCH):
         # 每隔50步输出一次信息
         if step % 50 == 0:
             test_output = cnn(test_x)
-            predict_y = torch.max(test_output, 1)[1].data.squeeze()
+            if useGpu:
+                predict_y = torch.max(test_output, 1)[1].cuda().data.squeeze()
+            else:
+                predict_y = torch.max(test_output, 1)[1].data.squeeze()
             accuracy = (predict_y == test_y).sum().item() / test_y.size(0)
             print('Epoch', epoch, '|', 'Step', step, '|', 'Loss', loss.data.item(), '|', 'Test Accuracy', accuracy)
+            print(str(useDevice) + '一轮用时:' + str(time.time() - instart))
+            instart = time.time()
 
 # 预测
 test_output = cnn(test_x[100:500])
-predict_y = torch.max(test_output, 1)[1].data.numpy().squeeze()
+
+if useGpu:
+    predict_y = torch.max(test_output, 1)[1].cuda().data.squeeze()
+
+else:
+    predict_y = torch.max(test_output, 1)[1].data.numpy().squeeze()
+
+
+
+print(str(device)+'总用时:'+str(time.time()-start))
+if useGpu:
+    test_y=test_y.cpu()
 real_y = test_y[100:500].numpy()
 print(predict_y)
 print(real_y)
@@ -148,7 +179,18 @@ for i in range(10):
         plt.show()
 
 cnn.eval()
-torch.save(cnn, 'cnn.pt')
+torch.save(cnn, './mod/'+useDevice+"/"+modName)
 
+#导出为traced_script格式的模型给java使用
+cnn.to('cpu')
+# if useGpu:
+#     model.cuda()
+# An example input you would normally provide to your model's forward() method.
+example = torch.rand(1, 1, 28, 28)
 
+# Use torch.jit.trace to generate a torch.jit.ScriptModule via tracing.
+traced_script_module = torch.jit.trace(cnn, example)
+
+# 保存 TorchScript 模型
+traced_script_module.save('./mod/'+useDevice+"/"+jmodName)
 
