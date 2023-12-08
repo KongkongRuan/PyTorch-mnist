@@ -29,7 +29,15 @@ def predictImg(path,isMy):
     if my:
         single_image = PIL.ImageOps.invert(single_image)
         bbox=single_image.getbbox()
-        single_image=single_image.crop(bbox)
+        margin=15
+        # 在裁剪框的基础上扩大5像素
+        expanded_bbox = (
+            max(bbox[0] - margin, 0),
+            max(bbox[1] - margin, 0),
+            min(bbox[2] + margin, single_image.width),
+            min(bbox[3] + margin, single_image.height)
+        )
+        single_image=single_image.crop(expanded_bbox)
         single_image = data_transform(single_image)  # 使用之前定义的预处理 transform
     else:
         single_image = test_transform(single_image)
@@ -61,7 +69,7 @@ def predictImg(path,isMy):
         plt.show()
 
 if __name__ == '__main__':
-    isMy = False
+    isMy = True
     for i in range(10):
         if isMy:
             predictImg('D:\\input\\my\\'+str(i)+'.png',isMy)
