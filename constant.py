@@ -1,10 +1,10 @@
 from torchvision import datasets,transforms
 import torch
 import torch.nn as nn
-showImg = False
-useGpu = True
-EPOCH = 10
-BATCH_SIZE = 20
+showImg = True
+useGpu = False
+EPOCH = 20
+BATCH_SIZE = 200
 LR = 0.001
 DOWNLOAD = True
 device = ''
@@ -23,12 +23,36 @@ else:
     jmodName = "j-cnn-cpu.pt"
     useDevice = 'cpu'
 
+train_transform = transforms.Compose([
+    transforms.Resize((28, 28)),  # 调整大小
+    transforms.ToTensor(),         # 转为张量
+    transforms.Normalize((0.5,), (0.5,)),  # 归一化
+    # transforms.RandomResizedCrop(size=(28, 28), scale=(0.8, 1.0)),
+])
+test_transform = transforms.Compose([
+    transforms.Resize((28, 28)),  # 调整大小
+    transforms.ToTensor(),         # 转为张量
+    transforms.Normalize((0.5,), (0.5,)),  # 归一化
+])
+data_transform = transforms.Compose([
+    # transforms.CenterCrop(size=(145, 145)),
+    transforms.Resize((28, 28)),  # 调整大小
+    transforms.ToTensor(),         # 转为张量
+    transforms.Normalize((0.5,), (0.5,)),  # 归一化
+])
+
 train_data = datasets.MNIST(
     root='./data',
     train=True,
-    transform=transforms.ToTensor(),
+    transform=train_transform,
     download=DOWNLOAD
 )
+test_data = datasets.MNIST(
+    root='./data',
+    train=False,
+    transform=test_transform
+)
+
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()

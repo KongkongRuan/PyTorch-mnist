@@ -33,10 +33,6 @@ train_loader = Data.DataLoader(
     num_workers=0
 )
 
-test_data = datasets.MNIST(
-    root='./data',
-    train=False
-)
 
 
 
